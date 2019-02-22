@@ -1,0 +1,1 @@
+/target:exe /out:Analyzer.exe /optimize /platform:x86 *.cs
