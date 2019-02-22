@@ -17,17 +17,6 @@ namespace Analyzer
 
             iv = uv = es = uc = false;
 
-            /*if ( args.Length > 0 && Directory.Exists(args[0]) )
-            {
-                path = args[0];
-            }
-            else
-            {
-                Console.WriteLine("Analyzer.exe <путь к папке>");
-                return;
-            }*/
-
-
             if ( args.Length > 0 )
             {
                 for ( int i = 0; i < args.Length; ++i )
