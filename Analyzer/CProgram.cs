@@ -1,5 +1,5 @@
 ﻿//
-// CProgram - программный файл (PRG)
+// CProgram - PRG
 //
 
 using System;
