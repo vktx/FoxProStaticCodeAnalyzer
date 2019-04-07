@@ -47,7 +47,7 @@ namespace Analyzer
                             return;
                         }
                     }
-                    else /*if ( Directory.Exists(args[i]) )*/
+                    else
                     {
                         path = args[i];
                         break;
@@ -62,8 +62,6 @@ namespace Analyzer
 
 
             CLog.Open("Analyzer.log");
-
-            //path = @"C:\work\p7\Projects770\AccountB\af_accountb_db_auto_update\code";
 
             if ( !Directory.Exists(path) )
             {
