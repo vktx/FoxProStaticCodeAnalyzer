@@ -74,10 +74,6 @@ namespace Analyzer
                 string[] files = Directory.GetFiles(path, "*.prg", SearchOption.AllDirectories);
                 foreach ( string file in files )
                 {
-                    // TODO: удалить
-                    /*if ( file.IndexOf("#TRASH#", StringComparison.CurrentCultureIgnoreCase) >= 0 )
-                        continue;*/
-                    
                     CProgram prg = new CProgram(file);
 
                     if ( !noParams )
