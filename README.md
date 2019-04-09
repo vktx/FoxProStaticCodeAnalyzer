@@ -19,7 +19,7 @@ FoxPro Static Code Analyzer
     iv (incorrect variable names) - проверять корректность имен переменных
     uv (undefined variables)      - искать необъявленные локальные переменные
     es (exception statement)      - проверять недопустимые инструкции в блоке обработки исключений
-    uc (unreachable code)          - поиск недостижимого кода
+    uc (unreachable code)         - поиск недостижимого кода
     
 Примечание:
 
