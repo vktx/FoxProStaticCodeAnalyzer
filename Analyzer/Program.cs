@@ -47,7 +47,7 @@ namespace Analyzer
                             return;
                         }
                     }
-                    else /*if ( Directory.Exists(args[i]) )*/
+                    else
                     {
                         path = args[i];
                         break;
@@ -63,8 +63,6 @@ namespace Analyzer
 
             CLog.Open("Analyzer.log");
 
-            //path = @"C:\work\p7\Projects770\AccountB\af_accountb_db_auto_update\code";
-
             if ( !Directory.Exists(path) )
             {
                 Console.WriteLine("Путь \"{0}\" не существует!", path);
@@ -76,10 +74,6 @@ namespace Analyzer
                 string[] files = Directory.GetFiles(path, "*.prg", SearchOption.AllDirectories);
                 foreach ( string file in files )
                 {
-                    // TODO: удалить
-                    /*if ( file.IndexOf("#TRASH#", StringComparison.CurrentCultureIgnoreCase) >= 0 )
-                        continue;*/
-                    
                     CProgram prg = new CProgram(file);
 
                     if ( !noParams )
