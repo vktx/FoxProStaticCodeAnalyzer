@@ -91,10 +91,6 @@ namespace Analyzer
                         line = line.Trim();
                     }
 
-                    // TODO: убрать
-                    ///////if ( String.IsNullOrWhiteSpace(line) ) // Пропускаем пустые строки
-                    ///////    continue;
-
                     // Склеиваем перенесенные строки
                     fullLine += line;
                     fullLine = fullLine.TrimEnd(';');
