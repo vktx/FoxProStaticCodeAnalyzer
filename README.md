@@ -1,4 +1,4 @@
-# FoxPro-Static-Code-Analyzer
+﻿# FoxPro-Static-Code-Analyzer
 FoxPro Static Code Analyzer
 
 # Возможности
@@ -16,10 +16,11 @@ FoxPro Static Code Analyzer
     
 # Параметры
 
-    iv (incorrect variable names) - проверять корректность имен переменных
-    uv (undefined variables)      - искать необъявленные локальные переменные
-    es (exception statement)      - проверять недопустимые инструкции в блоке обработки исключений
-    uc (unreachable code)         - поиск недостижимого кода
+    var_names   (incorrect variable names) - проверять корректность имен переменных
+    undef_vars  (undefined variables)      - искать необъявленные локальные переменные
+    exc_stmt    (exception statement)      - проверять недопустимые инструкции в блоке обработки исключений
+    unr_code    (unreachable code)         - поиск недостижимого кода
+    unused_vars (unused variables)         - поиск неиспользованных переменных
     
 Примечание:
 

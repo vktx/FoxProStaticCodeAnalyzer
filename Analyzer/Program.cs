@@ -12,10 +12,10 @@ namespace Analyzer
         static void Main( string[] args )
         {
             string path = "";
-            bool iv, uv, es, uc;
+            bool iv, uv, es, uc, unused_vars;
             bool noParams = true;
 
-            iv = uv = es = uc = false;
+            iv = uv = es = uc = unused_vars = false;
 
             if ( args.Length > 0 )
             {
@@ -25,21 +25,25 @@ namespace Analyzer
                     {
                         noParams = false;
 
-                        if ( args[i].Substring(1) == "iv" )
+                        if ( args[i].Substring(1) == "var_names" )
                         {
                             iv = true;
                         }
-                        else if ( args[i].Substring(1) == "uv" )
+                        else if ( args[i].Substring(1) == "undef_vars" )
                         {
                             uv = true;
                         }
-                        else if ( args[i].Substring(1) == "es" )
+                        else if ( args[i].Substring(1) == "exc_stmt" )
                         {
                             es = true;
                         }
-                        else if ( args[i].Substring(1) == "uc" )
+                        else if ( args[i].Substring(1) == "unr_code" )
                         {
                             uc = true;
+                        }
+                        else if ( args[i].Substring(1) == "unused_vars" )
+                        {
+                            unused_vars = true;
                         }
                         else
                         {
@@ -82,12 +86,14 @@ namespace Analyzer
                         prg.checkUndefinedVars = uv;
                         prg.checkExceptionStatement = es;
                         prg.checkUnreachableCode = uc;
+                        prg.checkUnusedVariables = unused_vars;
                     }
 
                     prg.Parse();
 
                     prg.CheckExceptionStatement();
                     prg.CheckUndefinedVariables();
+                    prg.CheckUnusedVariables();
                     prg.CheckUnreachableCode();
                 }
             }

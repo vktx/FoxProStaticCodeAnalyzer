@@ -77,5 +77,16 @@ namespace Analyzer
             
             Assignments.Add(new CAssignment(lineNum, name));
         }
+
+        //
+        // Если присвоение у переменной
+        //
+        public bool IsVariableAssigned( CVariable var )
+        {
+            foreach ( var assignment in Assignments )
+                if ( String.Compare(assignment.name, var.name, true) == 0 )
+                    return true;
+            return false;
+        }
     }
 }

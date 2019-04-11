@@ -22,8 +22,8 @@ namespace Analyzer
         public static readonly int LOCAL   = 3;
 
         public int    line;   // номер строки
-        public int    type;   // тип
-        public int    scope;  // видимость
+        public int    type;   // тип (параметр/переменная)
+        public int    scope;  // видимость (глобальная/приватная/локальная)
         public string name;   // имя
 
         //

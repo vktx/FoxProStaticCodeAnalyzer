@@ -24,10 +24,11 @@ namespace Analyzer
         // процедуры
         public List<CProcedure> Procedures;
 
-        public bool checkIncorrectVarNames  = true;  //false;
-        public bool checkUndefinedVars      = true;  //false;
-        public bool checkExceptionStatement = true;  //false;
-        public bool checkUnreachableCode    = true;  //false;
+        public bool checkIncorrectVarNames  = true;
+        public bool checkUndefinedVars      = true;
+        public bool checkExceptionStatement = true;
+        public bool checkUnreachableCode    = true;
+        public bool checkUnusedVariables    = true;
 
         //
         // Конструктор
@@ -310,6 +311,7 @@ namespace Analyzer
                     {
                         string str = line.content.Substring(0, pos);
 
+                        // FOR ...
                         if ( str.StartsWith("for ", StringComparison.CurrentCultureIgnoreCase) )
                             str = str.Substring(4).Trim();
 
@@ -324,8 +326,9 @@ namespace Analyzer
                             proc.AddAssignment(line.number, str);
                         }
                     }
+
                     // STORE ... TO ...
-                    else if ( line.content.StartsWith("store ", StringComparison.CurrentCultureIgnoreCase) )
+                    if ( line.content.StartsWith("store ", StringComparison.CurrentCultureIgnoreCase) )
                     {
                         string str = line.content.Substring(6);
                         int pos2 = str.IndexOf(" to ", StringComparison.CurrentCultureIgnoreCase);
@@ -342,6 +345,18 @@ namespace Analyzer
                             }
                         }
                     }
+                    // CATCH TO ...
+                    else if ( line.content.StartsWith("catch to ", StringComparison.OrdinalIgnoreCase) )
+                    {
+                        string str = line.content.Substring(9).Trim();
+                        if ( str != "" )
+                        {
+                            if ( checkIncorrectVarNames && !CheckName(str) )
+                                CLog.Print("{0}: {1}: Недопустимое имя переменной при присваивании \"{2}\"", fileName, line.number, str);
+
+                            proc.AddAssignment(line.number, str);
+                        }
+                    }
                     // FOR EACH ...
                     else if ( line.content.StartsWith("for each ", StringComparison.OrdinalIgnoreCase) )
                     {
@@ -353,13 +368,12 @@ namespace Analyzer
                             proc.AddAssignment(line.number, words[2]);
                         }
                     }
-                    else
+                    // SELECT ... FROM XXX INTO ARRAY YYY
+                    else if ( line.content.StartsWith("select ", StringComparison.OrdinalIgnoreCase) )
                     {
-                        // Прочие случаи ...
                         string[] words = line.content.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         int len = words.Length;
 
-                        // SELECT * FROM XXX INTO ARRAY YYY
                         if ( len > 6 ) 
                         {
                             if ( String.Compare(words[0], "select", true) == 0 )
@@ -439,14 +453,27 @@ namespace Analyzer
                     if ( dotPos > 0 )
                         name = name.Substring(0, dotPos);
 
-                    // TODO: убрать
-                    //if ( proc.FindVariable(name) == null )
-                    //    CLog.Print("{0}: {1}: Необъявленная переменная \"{2}\"", fileName, assignment.line, name);
-
                     CVariable var = proc.FindVariable(name);
-                    if ( var == null || assignment.line < var.line ) // если переменная не описана или описана после использования
+                    if ( var == null || assignment.line < var.line ) // если переменная не объявлена или объявлена после использования
                         CLog.Print("{0}: {1}: Необъявленная переменная \"{2}\"", fileName, assignment.line, name);
                 }
+            }
+        }
+
+        //
+        // Поиск неиспользованных переменных
+        //
+        public void CheckUnusedVariables( )
+        {
+            if ( !checkUnusedVariables )
+                return;
+            
+            foreach ( var proc in Procedures )
+            {
+                foreach ( var variable in proc.Variables )
+                    if ( variable.type == CVariable.VARIABLE ) // параметры не проверяем
+                        if ( !proc.IsVariableAssigned(variable) )
+                        CLog.Print("{0}: {1}: Неиспользованная переменная \"{2}\"", fileName, variable.line, variable.name);
             }
         }
 
