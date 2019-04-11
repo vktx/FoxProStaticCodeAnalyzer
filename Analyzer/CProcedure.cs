@@ -79,7 +79,7 @@ namespace Analyzer
         }
 
         //
-        // Если присвоение у переменной
+        // Есть ли присвоение у переменной
         //
         public bool IsVariableAssigned( CVariable var )
         {
