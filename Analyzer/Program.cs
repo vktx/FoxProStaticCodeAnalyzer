@@ -12,8 +12,10 @@ namespace Analyzer
         static void Main( string[] args )
         {
             string path = "";
+            string log_path = "Analyzer.log";
+
             bool iv, uv, es, uc, unused_vars;
-            bool noParams = true;
+            bool no_check_params = true;
 
             iv = uv = es = uc = unused_vars = false;
 
@@ -23,27 +25,34 @@ namespace Analyzer
                 {
                     if ( args[i].StartsWith("/") || args[i].StartsWith("-") )
                     {
-                        noParams = false;
-
                         if ( args[i].Substring(1) == "var_names" )
                         {
                             iv = true;
+                            no_check_params = false;
                         }
                         else if ( args[i].Substring(1) == "undef_vars" )
                         {
                             uv = true;
+                            no_check_params = false;
                         }
                         else if ( args[i].Substring(1) == "exc_stmt" )
                         {
                             es = true;
+                            no_check_params = false;
                         }
                         else if ( args[i].Substring(1) == "unr_code" )
                         {
                             uc = true;
+                            no_check_params = false;
                         }
                         else if ( args[i].Substring(1) == "unused_vars" )
                         {
                             unused_vars = true;
+                            no_check_params = false;
+                        }
+                        else if ( args[i].Substring(1, 1) == "o" ) // путь к протоколу
+                        {
+                            log_path = args[i].Substring(2); // -oD:\1.log
                         }
                         else
                         {
@@ -64,10 +73,16 @@ namespace Analyzer
                 return;
             }
 
+            CLog.Open(log_path);
 
-            CLog.Open("Analyzer.log");
+            Console.WriteLine(path);
 
-            if ( !Directory.Exists(path) )
+            bool path_is_dir = false;
+            if ( Directory.Exists(path) )
+            {
+                path_is_dir = true;
+            }
+            else if ( !File.Exists(path) )
             {
                 Console.WriteLine("Путь \"{0}\" не существует!", path);
                 return;
@@ -75,12 +90,13 @@ namespace Analyzer
 
             try
             {
-                string[] files = Directory.GetFiles(path, "*.prg", SearchOption.AllDirectories);
+                string[] files = path_is_dir ? Directory.GetFiles(path, "*.prg", SearchOption.AllDirectories) : new string[1] { path };
+
                 foreach ( string file in files )
                 {
                     CProgram prg = new CProgram(file);
 
-                    if ( !noParams )
+                    if ( !no_check_params )
                     {
                         prg.checkIncorrectVarNames = iv;
                         prg.checkUndefinedVars = uv;
