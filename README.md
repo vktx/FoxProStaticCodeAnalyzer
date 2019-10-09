@@ -1,4 +1,4 @@
-﻿# FoxPro-Static-Code-Analyzer
+﻿# FoxPro Static Code Analyzer
 FoxPro Static Code Analyzer
 
 # Возможности
@@ -13,7 +13,7 @@ FoxPro Static Code Analyzer
 
 # Использование 
 
-    Analyzer.exe [параметры] <путь к папке с исходным кодом>
+    Analyzer.exe [параметры] <путь к папке или файлу с исходным кодом>
     
 # Параметры
 
@@ -22,6 +22,7 @@ FoxPro Static Code Analyzer
     exc_stmt    (exception statement)      - проверять недопустимые инструкции в блоке обработки исключений
     unr_code    (unreachable code)         - поиск недостижимого кода
     unused_vars (unused variables)         - поиск неиспользованных переменных
+    o                                      - путь к файлу протокола
     
 Примечание:
 
@@ -30,7 +31,10 @@ FoxPro Static Code Analyzer
     
 # TODO ...
 
-    1) Исключить из проверки присвоения системные переменные и объекты (_VFP, _SCREEN, APPLICATION, _TALLY, _CLIPTEXT и т.д.) возможно надо добавить файл с исключениями для глобальных переменных
+    1) Исключить из проверки присвоения системные переменные и объекты (_VFP, _SCREEN, APPLICATION, _TALLY, _CLIPTEXT и т.д.) 
     2) Некорректная обработка присвоения func("====10") воспринимается как func = 10
-    3) Присвоение: создание переменной в функциях AFIELDS, ADIR, ANETRESOURCES, APRINTERS, AGETFILEVERSION, ADLLS, ADATABASES, AERROR, AMEMBERS, ASESSIONS, AUSED и т.д.
-    4) Обработать LOCAL ARRAY
+    + 3) Присвоение: создание переменной в функциях AFIELDS, ADIR, ANETRESOURCES, APRINTERS, AGETFILEVERSION, ADLLS, ADATABASES, AERROR, AMEMBERS, ASESSIONS, AUSED и т.д.
+    + 4) Обработать LOCAL ARRAY
+    5) Присвоение:  SCATTER, GATHER
+    + 6) Присвоение:  DO FORM ... TO ... NAME ...
+    + 7) Присвоение:  CALCULATE ... TO ...
