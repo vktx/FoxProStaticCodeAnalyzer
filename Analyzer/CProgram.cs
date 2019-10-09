@@ -53,6 +53,57 @@ namespace Analyzer
         }
 
         //
+        //
+        //
+        static bool StartWith( string s, params string[] words )
+        {
+            foreach (string w in words)
+                if (s.StartsWith(w, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            return false;
+        }
+
+        //
+        //
+        //
+        static int IndexOf(string s, params string[] words)
+        {
+            foreach (string w in words)
+            {
+                int i = s.IndexOf(w, StringComparison.OrdinalIgnoreCase);
+                if ( i >= 0 )
+                    return i;
+            }
+            return -1;
+        }
+
+        //
+        //
+        //
+        static string FormatVarName( string name )
+        {
+            string s = "";
+            bool ignore = false;
+
+            for (int i = 0; i < name.Length; i++)
+            {
+                if (name[i] == '[' || name[i] == '(')
+                    ignore = true;
+
+                if (name[i] == ']' || name[i] == ')')
+                {
+                    ignore = false;
+                    continue;
+                }
+
+                if (!ignore)
+                    s += name[i];
+            }
+
+            return s;
+        }
+
+        //
         // Проверка корректности имени
         //
         static bool CheckName( string name )
@@ -96,14 +147,18 @@ namespace Analyzer
                     fullLine += line;
                     fullLine = fullLine.TrimEnd(';');
 
+                    // Добавим пробел для разделения перенесенных строк
+                    if ( line.EndsWith(";") )
+                        fullLine += " ";
+
                     if ( String.IsNullOrWhiteSpace(fullLine) ) // Пропускаем пустые строки
                         continue;
 
-                    // если это конечная строка 
+                    // Если это конечная строка (не содержит ';' в конце)
                     if ( !line.EndsWith(";") )
                     {
                         // и не комментарий
-                        if ( !(fullLine.StartsWith("*") || fullLine.StartsWith("&&") || fullLine.StartsWith("NOTE", StringComparison.CurrentCultureIgnoreCase)) )
+                        if ( !(fullLine.StartsWith("*") || fullLine.StartsWith("&&") || fullLine.StartsWith("NOTE", StringComparison.OrdinalIgnoreCase)) )
                             Lines.Add(new CLine(lineNumber, fullLine)); // добавляем в список строк кода
 
                         fullLine = "";
@@ -111,6 +166,12 @@ namespace Analyzer
                     }
                 }
             }
+
+            /*
+            // DEBUG
+            for (int i = 0; i < Lines.Count; i++)
+                CLog.Print(Lines[i].content);
+            */
         }
 
         //
@@ -132,19 +193,19 @@ namespace Analyzer
                 if ( words.Length > 1 )
                 {
                     if ( words.Length > 2 )
-                        if ( String.Compare(words[0], "define", true) == 0 && String.Compare(words[1], "class", true) == 0 )
+                        if ( String.Compare(words[0], "DEFINE", true) == 0 && String.Compare(words[1], "class", true) == 0 )
                             class_name = words[2];
 
-                    if ( String.Compare(words[0], "enddefine", true) == 0 )
+                    if ( String.Compare(words[0], "ENDDEFINE", true) == 0 )
                         class_name = "";
 
 
-                    int procWord = (String.Compare(words[0], "hidden", true) == 0 || String.Compare(words[0], "protected", true) == 0) ? 1 : 0;
+                    int procWord = (String.Compare(words[0], "HIDDEN", true) == 0 || String.Compare(words[0], "PROTECTED", true) == 0) ? 1 : 0;
                     if ( procWord == 1 && words.Length < 3 )
                         continue;
 
                     // procedure/function
-                    if ( String.Compare(words[procWord], "procedure", true) == 0 || String.Compare(words[procWord], "function", true) == 0 )
+                    if ( String.Compare(words[procWord], "PROCEDURE", true) == 0 || String.Compare(words[procWord], "FUNCTION", true) == 0 )
                     {
                         if ( proc != null ) // значит не обнаружен endproc/endfunc
                         {
@@ -160,7 +221,7 @@ namespace Analyzer
                 if ( words.Length > 0 )
                 {
                     // endproc/endfunc
-                    if ( String.Compare(words[0], "endproc", true) == 0 || String.Compare(words[0], "endfunc", true) == 0 )
+                    if ( String.Compare(words[0], "ENDPROC", true) == 0 || String.Compare(words[0], "endfunc", true) == 0 )
                     {
                         if ( proc != null )
                         {
@@ -193,7 +254,7 @@ namespace Analyzer
                     bool RedefineCheck = false;
 
                     bool found = false;
-                    if ( line.StartsWith("local ", StringComparison.CurrentCultureIgnoreCase) )
+                    if ( line.StartsWith("LOCAL ", StringComparison.OrdinalIgnoreCase) )
                     {
                         type = CVariable.VARIABLE;
                         scope = CVariable.LOCAL;
@@ -201,7 +262,7 @@ namespace Analyzer
                         found = true;
                     }
 
-                    if ( line.StartsWith("private ", StringComparison.CurrentCultureIgnoreCase) )
+                    if ( line.StartsWith("PRIVATE ", StringComparison.OrdinalIgnoreCase) )
                     {
                         type = CVariable.VARIABLE;
                         scope = CVariable.PRIVATE;
@@ -209,7 +270,7 @@ namespace Analyzer
                         found = true;
                     }
 
-                    if ( line.StartsWith("public ", StringComparison.CurrentCultureIgnoreCase) )
+                    if ( line.StartsWith("PUBLIC ", StringComparison.OrdinalIgnoreCase) )
                     {
                         type = CVariable.VARIABLE;
                         scope = CVariable.GLOBAL;
@@ -217,31 +278,31 @@ namespace Analyzer
                         found = true;
                     }
 
-                    if ( line.StartsWith("lparameter ", StringComparison.CurrentCultureIgnoreCase) || line.StartsWith("lparameters ", StringComparison.CurrentCultureIgnoreCase) )
+                    if ( line.StartsWith("LPARAMETER ", StringComparison.OrdinalIgnoreCase) || line.StartsWith("LPARAMETERS ", StringComparison.OrdinalIgnoreCase) )
                     {
                         type = CVariable.PARAMETER;
                         scope = CVariable.LOCAL;
                         found = true;
                     }
 
-                    if ( line.StartsWith("parameter", StringComparison.CurrentCultureIgnoreCase) || line.StartsWith("parameters", StringComparison.CurrentCultureIgnoreCase) )
+                    if ( line.StartsWith("PARAMETER", StringComparison.OrdinalIgnoreCase) || line.StartsWith("PARAMETERS", StringComparison.OrdinalIgnoreCase) )
                     {
                         type = CVariable.PARAMETER;
                         scope = CVariable.PRIVATE;
                         found = true;
                     }
 
-                    if ( line.StartsWith("dimension ", StringComparison.CurrentCultureIgnoreCase) )
+                    if ( line.StartsWith("DIMENSION ", StringComparison.OrdinalIgnoreCase) )
                     {
                         type = CVariable.VARIABLE;
                         scope = CVariable.PRIVATE;
                         found = true;
                     }
 
-                    if ( line.StartsWith("declare ", StringComparison.CurrentCultureIgnoreCase) )
+                    if ( line.StartsWith("DECLARE ", StringComparison.OrdinalIgnoreCase) )
                     {
                         // пропускаем DECLARE DLL
-                        if ( line.IndexOf(" in ", StringComparison.CurrentCultureIgnoreCase) < 0 )
+                        if ( line.IndexOf(" IN ", StringComparison.OrdinalIgnoreCase) < 0 )
                         {
                             type = CVariable.VARIABLE;
                             scope = CVariable.PRIVATE;
@@ -252,31 +313,22 @@ namespace Analyzer
                     if ( found )
                     {
                         string s = "";
-                        bool ignore = false;
 
                         line = line.Substring(line.IndexOf(' '));
 
+                        // обрабатываем LOCAL ARRAY, PUBLIC ARRAY
+                        int array_word = line.IndexOf("ARRAY ", StringComparison.OrdinalIgnoreCase);
+                        if ( array_word != -1 )
+                            line = line.Substring(array_word + 6);
+
                         // если описан тип, отбрасываем
-                        int as_word = line.IndexOf(" as ");
+                        int as_word = line.IndexOf(" AS ", StringComparison.OrdinalIgnoreCase);
                         if ( as_word > 0 )
                             line = line.Substring(0, as_word);
 
                         // игнорируем размерности массивов
-                        for ( int j = 0; j < line.Length; j++ )
-                        {
-                            if ( line[j] == '[' || line[j] == '(' )
-                                ignore = true;
+                        s = FormatVarName(line);
 
-                            if ( line[j] == ']' || line[j] == ')' )
-                            {
-                                ignore = false;
-                                continue;
-                            }
-
-                            if ( !ignore )
-                                s += line[j];
-                        }
-                  
                         string [] words = s.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         for ( int j = 0; j < words.Length; j++ )
                         {
@@ -299,39 +351,79 @@ namespace Analyzer
         //
         public void FindAssignments()
         {
+            // процедуры, создающие массивы (если они не объявлены)
+            string[] aprocedures =
+            {
+                "ACOPY",
+                "ACLASS",
+                "ADATABASES",
+                "ADBOBJECTS",
+                "ADIR",
+                "ADLLS",
+                "ADOCKSTATE",
+                "AELEMENT",
+                "AERROR",
+                "AEVENTS",
+                "AFIELDS",
+                "AFONT",
+                "AGETCLASS",
+                "AGETFILEVERSION",
+                "AINSTANCE",
+                "ALANGUAGE",
+                "ALINES",
+                "AMEMBERS",
+                "AMOUSEOBJ",
+                "ANETRESOURCES",
+                "APRINTERS",
+                "APROCINFO",
+                "ASELOBJ",
+                "ASESSIONS",
+                "ASQLHANDLES",
+                "ASTACKINFO",
+                "ATAGINFO",
+                "AUSED",
+                "AVCXCLASSES"
+            };
+            
             foreach ( var proc in Procedures )
             {
                 for ( int i = proc.begin_line; i <= proc.end_line; i++ )
                 {
                     CLine line = Lines[i];
+                    int offset = 0;
 
-                    // VAR = ...
+                    // VARIABLE = ... (явное присвоение)
                     int pos = line.content.IndexOf('=');
                     if ( pos > 0 )
                     {
                         string str = line.content.Substring(0, pos);
 
-                        // FOR ...
-                        if ( str.StartsWith("for ", StringComparison.CurrentCultureIgnoreCase) )
-                            str = str.Substring(4).Trim();
-
-                        string[] columns = str.Split(new[] { '=', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        if ( columns.Length == 1 )
+                        if ( !StartWith(str, "IF") )
                         {
-                            str = str.Trim();
+                            // FOR ...
+                            if (str.StartsWith("FOR ", StringComparison.OrdinalIgnoreCase))
+                                str = str.Substring(4).Trim();
 
-                            if ( checkIncorrectVarNames && !CheckName(str) )
-                                CLog.Print("{0}: {1}: Недопустимое имя переменной при присваивании \"{2}\"", fileName, line.number, str);
+                            str = FormatVarName(str);
 
-                            proc.AddAssignment(line.number, str);
+                            string[] columns = str.Split(new[] { '=', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (columns.Length == 1)
+                            {
+                                str = str.Trim();
+
+                                if (checkIncorrectVarNames && !CheckName(str))
+                                    CLog.Print("{0}: {1}: Недопустимое имя переменной при присваивании \"{2}\"", fileName, line.number, str);
+
+                                proc.AddAssignment(line.number, str);
+                            }
                         }
                     }
 
                     // STORE ... TO ...
-                    if ( line.content.StartsWith("store ", StringComparison.CurrentCultureIgnoreCase) )
+                    if ( line.content.StartsWith("STORE ", StringComparison.OrdinalIgnoreCase) )
                     {
                         string str = line.content.Substring(6);
-                        int pos2 = str.IndexOf(" to ", StringComparison.CurrentCultureIgnoreCase);
+                        int pos2 = str.IndexOf(" TO ", StringComparison.OrdinalIgnoreCase);
                         if ( pos2 >= 0 )
                         {
                             str = str.Substring(pos2 + 4).Trim();
@@ -346,7 +438,7 @@ namespace Analyzer
                         }
                     }
                     // CATCH TO ...
-                    else if ( line.content.StartsWith("catch to ", StringComparison.OrdinalIgnoreCase) )
+                    else if ( line.content.StartsWith("CATCH TO ", StringComparison.OrdinalIgnoreCase) )
                     {
                         string str = line.content.Substring(9).Trim();
                         if ( str != "" )
@@ -358,7 +450,7 @@ namespace Analyzer
                         }
                     }
                     // FOR EACH ...
-                    else if ( line.content.StartsWith("for each ", StringComparison.OrdinalIgnoreCase) )
+                    else if ( line.content.StartsWith("FOR EACH ", StringComparison.OrdinalIgnoreCase) )
                     {
                         string [] words = line.content.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         if ( words.Length > 2 )
@@ -368,19 +460,102 @@ namespace Analyzer
                             proc.AddAssignment(line.number, words[2]);
                         }
                     }
+                    // CALCULATE ... TO ...
+                    else if (line.content.StartsWith("CALCULATE ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string str = line.content.Substring(10);
+                        int pos2 = str.IndexOf(" TO ", StringComparison.OrdinalIgnoreCase);
+                        if (pos2 >= 0)
+                        {
+                            str = str.Substring(pos2 + 4).Trim();
+
+                            int len = str.IndexOf(" IN ", StringComparison.OrdinalIgnoreCase);
+                            if (len > 0)
+                                str = str.Substring(0, len);
+
+                            pos2 = str.IndexOf("ARRAY ", StringComparison.OrdinalIgnoreCase);
+                            if (pos2 >= 0)
+                                str = str.Substring(pos2 + 6).Trim();
+
+                            string[] columns = str.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            for (int j = 0; j < columns.Length; j++)
+                            {
+                                if (checkIncorrectVarNames && !CheckName(columns[j]))
+                                    CLog.Print("{0}: {1}: Недопустимое имя переменной при присваивании \"{2}\"", fileName, line.number, columns[j]);
+
+                                proc.AddAssignment(line.number, columns[j]);
+                            }
+                        }
+                    }
+                    // DO FORM ... NAME ... TO ...
+                    else if (line.content.StartsWith("DO FORM ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string str = line.content.Substring(8);
+                        int pos2 = str.IndexOf(" NAME ", StringComparison.OrdinalIgnoreCase);
+                        if (pos2 >= 0)
+                        {
+                            str = str.Substring(pos2 + 6).Trim();
+                            string[] columns = str.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            int len = columns.Length;
+                            if ( len > 0 )
+                            {
+                                if (checkIncorrectVarNames && !CheckName(columns[0]))
+                                    CLog.Print("{0}: {1}: Недопустимое имя переменной при присваивании \"{2}\"", fileName, line.number, columns[0]);
+                                proc.AddAssignment(line.number, columns[0]);
+                            }
+                        }
+
+                        pos2 = str.IndexOf(" TO ", StringComparison.OrdinalIgnoreCase);
+                        if (pos2 >= 0)
+                        {
+                            str = str.Substring(pos2 + 4).Trim();
+                            string[] columns = str.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            int len = columns.Length;
+                            if (len > 0)
+                            {
+                                if (checkIncorrectVarNames && !CheckName(columns[0]))
+                                    CLog.Print("{0}: {1}: Недопустимое имя переменной при присваивании \"{2}\"", fileName, line.number, columns[0]);
+                                proc.AddAssignment(line.number, columns[0]);
+                            }
+                        }
+                    }
+                    // ON ERROR VAR = VALUE
+                    else if (line.content.StartsWith("ON ERROR ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string[] words = line.content.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        if ((words.Length > 4) && (words[3] == "=") )
+                        {
+                            if (checkIncorrectVarNames && !CheckName(words[2]))
+                                CLog.Print("{0}: {1}: Недопустимое имя переменной при присваивании \"{2}\"", fileName, line.number, words[2]);
+                            proc.AddAssignment(line.number, words[2]);
+                        }
+                    }
+                    // A... procedures
+                    else if ( (offset = IndexOf(line.content, aprocedures)) >= 0 )
+                    {
+                        string str = line.content.Substring(offset);
+                        int num = str.StartsWith("ACOPY", StringComparison.OrdinalIgnoreCase) ? 2 : 1; // для ACOPY проверяем 2-й параметр
+                        string[] words = str.Split(new[] { ' ', '(', ')', ',' }, StringSplitOptions.RemoveEmptyEntries);
+                        if ( words.Length > 1 )
+                        {
+                            if ( checkIncorrectVarNames && !CheckName(words[num]) )
+                                CLog.Print("{0}: {1}: Недопустимое имя переменной при присваивании \"{2}\"", fileName, line.number, words[num]);
+                            proc.AddAssignment(line.number, words[num]);
+                        }
+                    }
                     // SELECT ... FROM XXX INTO ARRAY YYY
-                    else if ( line.content.StartsWith("select ", StringComparison.OrdinalIgnoreCase) )
+                    else if ( line.content.StartsWith("SELECT ", StringComparison.OrdinalIgnoreCase) )
                     {
                         string[] words = line.content.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                         int len = words.Length;
 
                         if ( len > 6 ) 
                         {
-                            if ( String.Compare(words[0], "select", true) == 0 )
+                            if ( String.Compare(words[0], "SELECT", true) == 0 )
                             {
-                                if ( String.Compare(words[len - 3], "into", true) == 0 )
+                                if ( String.Compare(words[len - 3], "INTO", true) == 0 )
                                 {
-                                    if ( String.Compare(words[len - 2], "array", true) == 0 )
+                                    if ( String.Compare(words[len - 2], "ARRAY", true) == 0 )
                                     {
                                         if ( checkIncorrectVarNames && !CheckName(words[len - 1]) )
                                             CLog.Print("{0}: {1}: Недопустимое имя переменной при присваивании \"{2}\"", fileName, line.number, words[len - 1]);
@@ -406,18 +581,18 @@ namespace Analyzer
             bool tryStart = false;
             foreach ( var line in Lines )
             {
-                if ( String.Compare(line.content, "try", true) == 0 )
+                if ( String.Compare(line.content, "TRY", true) == 0 )
                     tryStart = true;
 
-                if ( String.Compare(line.content, "endtry", true) == 0 )
+                if ( String.Compare(line.content, "ENDTRY", true) == 0 )
                     tryStart = false;
 
                 if ( tryStart )
                 {
-                    if ( line.content.StartsWith("return", StringComparison.CurrentCultureIgnoreCase) )
+                    if ( line.content.StartsWith("RETURN", StringComparison.OrdinalIgnoreCase) )
                         CLog.Print("{0}: {1}: Недопустимое использование RETURN", fileName, line.number);
 
-                    if ( line.content.StartsWith("retry", StringComparison.CurrentCultureIgnoreCase) )
+                    if ( line.content.StartsWith("RETRY", StringComparison.OrdinalIgnoreCase) )
                         CLog.Print("{0}: {1}: Недопустимое использование RETRY", fileName, line.number);
                 }
             }
@@ -438,11 +613,11 @@ namespace Analyzer
                     string name = assignment.name;
                     
                     // Пропускаем присвоения свойствам текущего класса
-                    if ( name.StartsWith("this.", StringComparison.CurrentCultureIgnoreCase) || name.StartsWith("this->", StringComparison.CurrentCultureIgnoreCase) )
+                    if ( name.StartsWith("THIS.", StringComparison.OrdinalIgnoreCase) || name.StartsWith("THIS->", StringComparison.OrdinalIgnoreCase) )
                         continue;
 
                     // Пропускаем присвоения свойствам текущей формы
-                    if ( name.StartsWith("thisform.", StringComparison.CurrentCultureIgnoreCase) || name.StartsWith("thisform->", StringComparison.CurrentCultureIgnoreCase) )
+                    if ( name.StartsWith("THISFORM.", StringComparison.OrdinalIgnoreCase) || name.StartsWith("THISFORM->", StringComparison.OrdinalIgnoreCase) )
                         continue;
 
                     // Для свойcтв объекта берем имя
@@ -473,7 +648,7 @@ namespace Analyzer
                 foreach ( var variable in proc.Variables )
                     if ( variable.type == CVariable.VARIABLE ) // параметры не проверяем
                         if ( !proc.IsVariableAssigned(variable) )
-                        CLog.Print("{0}: {1}: Неиспользованная переменная \"{2}\"", fileName, variable.line, variable.name);
+                            CLog.Print("{0}: {1}: Неиспользованная переменная \"{2}\"", fileName, variable.line, variable.name);
             }
         }
 
@@ -492,29 +667,29 @@ namespace Analyzer
                 {
                     CLine line = Lines[i];
 
-                    if ( line.content.StartsWith("if ", StringComparison.OrdinalIgnoreCase) )
+                    if ( line.content.StartsWith("IF ", StringComparison.OrdinalIgnoreCase) )
                         cond_count++;
-                    if ( line.content.StartsWith("endif", StringComparison.OrdinalIgnoreCase) )
+                    if ( line.content.StartsWith("ENDIF", StringComparison.OrdinalIgnoreCase) )
                         cond_count--;
 
-                    if ( line.content.StartsWith("for ", StringComparison.OrdinalIgnoreCase) )
+                    if ( line.content.StartsWith("FOR ", StringComparison.OrdinalIgnoreCase) )
                         cond_count++;
-                    if ( line.content.StartsWith("endfor", StringComparison.OrdinalIgnoreCase) )
+                    if ( line.content.StartsWith("ENDFOR", StringComparison.OrdinalIgnoreCase) )
                         cond_count--;
 
-                    if ( line.content.StartsWith("do while ", StringComparison.OrdinalIgnoreCase) )
+                    if ( line.content.StartsWith("DO WHILE ", StringComparison.OrdinalIgnoreCase) )
                         cond_count++;
-                    if ( line.content.StartsWith("enddo", StringComparison.OrdinalIgnoreCase) )
+                    if ( line.content.StartsWith("ENDDO", StringComparison.OrdinalIgnoreCase) )
                         cond_count--;
 
-                    if ( line.content.StartsWith("do case", StringComparison.OrdinalIgnoreCase) )
+                    if ( line.content.StartsWith("DO CASE", StringComparison.OrdinalIgnoreCase) )
                         cond_count++;
-                    if ( line.content.StartsWith("endcase", StringComparison.OrdinalIgnoreCase) )
+                    if ( line.content.StartsWith("ENDCASE", StringComparison.OrdinalIgnoreCase) )
                         cond_count--;
 
-                    if ( line.content.StartsWith("scan", StringComparison.OrdinalIgnoreCase) )
+                    if ( line.content.StartsWith("SCAN", StringComparison.OrdinalIgnoreCase) )
                         cond_count++;
-                    if ( line.content.StartsWith("endscan", StringComparison.OrdinalIgnoreCase) )
+                    if ( line.content.StartsWith("ENDSCAN", StringComparison.OrdinalIgnoreCase) )
                         cond_count--;
 
                     //
@@ -522,18 +697,18 @@ namespace Analyzer
                     // В данном месте наличие RETURN меджу TRY/ENDTRY не считаем ошибкой
                     // Ошибка на недопустимость использования RETURN проверяется в CheckTryEndtry
                     //
-                    if ( line.content.StartsWith("try", StringComparison.OrdinalIgnoreCase) )
+                    if ( line.content.StartsWith("TRY", StringComparison.OrdinalIgnoreCase) )
                         cond_count++;
-                    if ( line.content.StartsWith("endtry", StringComparison.OrdinalIgnoreCase) )
+                    if ( line.content.StartsWith("ENDTRY", StringComparison.OrdinalIgnoreCase) )
                         cond_count--;
 
-                    if ( line.content.StartsWith("return", StringComparison.OrdinalIgnoreCase) )
+                    if ( line.content.StartsWith("RETURN", StringComparison.OrdinalIgnoreCase) )
                     {
                         if ( cond_count == 0 && i < proc.end_line )
                         {
-                            if ( !(Lines[i + 1].content.StartsWith("endfunc", StringComparison.OrdinalIgnoreCase)
-                                || Lines[i + 1].content.StartsWith("endproc", StringComparison.OrdinalIgnoreCase)
-                                || Lines[i + 1].content.StartsWith("endwith", StringComparison.OrdinalIgnoreCase)) )
+                            if ( !(Lines[i + 1].content.StartsWith("ENDFUNC", StringComparison.OrdinalIgnoreCase)
+                                || Lines[i + 1].content.StartsWith("ENDPROC", StringComparison.OrdinalIgnoreCase)
+                                || Lines[i + 1].content.StartsWith("ENDWITH", StringComparison.OrdinalIgnoreCase)) )
                             {
                                 CLog.Print("{0}: {1}: Недостижимый код", fileName, Lines[i + 1].number);
                             }

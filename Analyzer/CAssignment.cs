@@ -23,16 +23,21 @@ namespace Analyzer
             // TODO: перенести этот код отсюда в CProcedure.AddAssignment
 
             // избавляемся от m.
-            if ( name.StartsWith("m.", StringComparison.CurrentCultureIgnoreCase) )
+            if ( name.StartsWith("m.", StringComparison.OrdinalIgnoreCase) )
                 name = name.Substring(2);
-            if ( name.StartsWith("m->", StringComparison.CurrentCultureIgnoreCase ) )
+            if ( name.StartsWith("m->", StringComparison.OrdinalIgnoreCase) )
                 name = name.Substring(3);
 
-            // избавляемся от &
-            if ( name.StartsWith("&") )
+            // обработка макроподстановки
+            if (name.StartsWith("&"))
+            {
+                // избавляемся от & в начале
                 name = name.Substring(1);
-
-            // TODO: тут наверно надо провериться на точку в конце &var.
+                // и от . в конце
+                int dot = name.IndexOf('.');
+                if (dot > 0)
+                    name = name.Substring(0, dot);
+            }
 
             this.line = line; // физический номер в файле, начиная с единицы
             this.name = name;
