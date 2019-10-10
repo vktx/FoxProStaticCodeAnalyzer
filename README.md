@@ -1,5 +1,4 @@
-﻿# FoxPro Static Code Analyzer
-FoxPro Static Code Analyzer
+# FoxPro Static Code Analyzer
 
 # Возможности
 
